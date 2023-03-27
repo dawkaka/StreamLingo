@@ -16,65 +16,54 @@ document.addEventListener('keydown', (event) => {
     // Check if 'T' key was pressed
     if (event.key === 't' || event.key === 'T') {
         console.log('Translating audio...');
-        alert("here")
-        return
         // Stop recording
-        mediaRecorder.stop();
 
         // Convert recorded chunks to a single Blob
         const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
         const formData = new FormData();
         formData.append("audio", audioBlob, "audio.webm");
+        formData.append("targetLanguage", language)
 
-        fetch("https://api.openai.com/v1/whisper/interpretations", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer <YOUR_API_KEY>",
-            },
-            body: formData
-        })
-            .then(response => response.json())
+        fetch("http://localhost:3000/api/hello", { method: "POST", body: formData })
+            .then(res => res.json())
             .then(data => {
-                transcript += data.transcriptions[0].text;
-                audioChunks = [];
-                fetch(`https://translation.googleapis.com/language/translate/v2?key=<YOUR_API_KEY>&q=${encodeURIComponent(transcript)}&target=${language}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        transcript = data.data.translations[0].translatedText;
-                        console.log(transcript);
-                    })
-                    .catch(console.error);
+                transcript = data.data.translations[0].translatedText;
+                alert(transcript)
             })
-            .catch(console.error);
-
+            .catch(err => {
+                console.log(err)
+            })
         // Reset variables
         recordedChunks = [];
         mediaRecorder = null;
     }
 });
 
-// Find and start recording audio from media elements on the page
-const startRecording = () => {
-    const mediaElements = document.querySelectorAll('audio, video');
-    mediaElements.forEach((mediaElement) => {
-        const stream = mediaElement.captureStream();
-        const options = { mimeType: 'audio/webm' };
-        mediaRecorder = new MediaRecorder(stream, options);
-
-        mediaRecorder.addEventListener('dataavailable', (event) => {
-            if (event.data.size > 0) {
-                recordedChunks.push(event.data);
-            }
-        });
-
-        mediaRecorder.start();
-        console.log('Recording started...');
+function startRecording() {
+    const stream = document.querySelector('video, audio').captureStream();
+    if (!stream) {
+        console.error('No media stream found');
+        return;
+    }
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.addEventListener('dataavailable', (event) => {
+        recordedChunks.push(event.data);
     });
-};
+
+    if (mediaRecorder.state === 'inactive') {
+        mediaRecorder.start();
+    }
+
+    console.log('Recording started');
+
+    setTimeout(() => {
+        if (mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        recordedChunks = []
+        console.log('Recording stopped');
+    }, 10000);
+}
+
 
 startRecording();
