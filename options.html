@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>StreamLingo Options</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 20px 0 10px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        select {
+            font-size: 16px;
+            padding: 5px;
+            width: 200px;
+        }
+
+        button {
+            background-color: #4caf50;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>StreamLingo Options</h1>
+    <label for="language-select">Select your preferred language:</label>
+    <select id="language-select">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="es">Spanish</option>
+        <option value="it">Italian</option>
+        <option value="pt">Portuguese</option>
+        <option value="ru">Russian</option>
+        <option value="zh">Chinese</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+    </select>
+    <br />
+    <button id="save-btn">Save Changes</button>
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Changes saved successfully!</p>
+        </div>
+    </div>
+    <script>
+        const languageSelect = document.getElementById("language-select");
+        const saveBtn = document.getElementById("save-btn");
+        const successModal = document.getElementById("success-modal");
+
+        // Retrieve the user's selected language from storage
+        chrome.storage.sync.get(["language"], function (result) {
+            if (result.language) {
+                languageSelect.value = result.language;
+            }
+        });
+
+        // Save the user's selected language to storage
+        saveBtn.addEventListener("click", function () {
+            const selectedLanguage = languageSelect.value;
+            chrome.storage.sync.set({ language: selectedLanguage }, function () {
+                const language = languageSelect.value;
+                chrome.storage.sync.set({ language: language }, function () {
+                    alert("Language preference saved!");
+                });
+            })
+        })
+    </script>
+</body>
+
+</html>
