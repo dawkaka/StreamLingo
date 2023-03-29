@@ -45,7 +45,7 @@ document.addEventListener('keydown', (event) => {
 
 function startRecording() {
     try {
-        const data = document.querySelector('video, audio')
+        const data = document.querySelector('video')
         if (!data) {
             return
         }
