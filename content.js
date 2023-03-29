@@ -50,13 +50,9 @@ function startRecording() {
             return
         }
 
-        const stream = data.captureStream();
-        if (!stream) {
-            console.error('No media stream found');
-            return;
-        }
+        const audioStream = new MediaStream(data.captureStream().getAudioTracks());
 
-        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder = new MediaRecorder(audioStream);
         mediaRecorder.addEventListener('dataavailable', (event) => {
             // Calculate the start time for the last 5 seconds of audio
             const startTime = event.timeStamp - 5000;
@@ -87,9 +83,13 @@ function startRecording() {
         }, 5000);
 
     } catch (error) {
+        console.log(error)
         setTimeout(() => {
             startRecording()
         }, 3000)
     }
 }
+
+
+
 startRecording()
