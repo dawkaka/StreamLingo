@@ -15,7 +15,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 document.addEventListener('keydown', (event) => {
     // Check if 'T' key was pressed
     if (event.key === 't' || event.key === 'T') {
-        console.log('Translating audio...');
         // Stop recording
         let chunks = prevChunks
         if (mediaRecorder.state !== 'inactive') {
@@ -63,14 +62,11 @@ function startRecording() {
             // Push the current chunk to the recordedChunks array
             recordedChunks.push(event.data);
 
-            console.log(recordedChunks.length);
         });
 
         if (mediaRecorder.state === 'inactive') {
             mediaRecorder.start();
         }
-
-        console.log('Recording started');
 
         setInterval(() => {
             if (mediaRecorder.state !== 'inactive') {
@@ -80,16 +76,13 @@ function startRecording() {
             if (mediaRecorder.state === 'inactive') {
                 mediaRecorder.start();
             }
-        }, 5000);
+        }, 3000);
 
     } catch (error) {
-        console.log(error)
         setTimeout(() => {
             startRecording()
         }, 3000)
     }
 }
-
-
 
 startRecording()
