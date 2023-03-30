@@ -79,7 +79,6 @@ function startRecording() {
             if (mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
             }
-            console.log('chunked');
             if (mediaRecorder.state === 'inactive') {
                 mediaRecorder.start();
             }
