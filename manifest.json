@@ -11,13 +11,13 @@
     },
     "permissions": [
         "activeTab",
-        "storage"
+        "storage",
+        "webNavigation"
     ],
     "content_scripts": [
         {
             "matches": [
-                "*://*.youtube.com/*",
-                "*://*.netflix.com/*"
+                "<all_urls>"
             ],
             "js": [
                 "content.js"

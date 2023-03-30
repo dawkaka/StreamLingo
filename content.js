@@ -2,7 +2,9 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let prevChunks = []
 let language = 'en';
-let full = false
+let interval = undefined
+let timeout = undefined
+let currentPath = ""
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'setLanguage') {
@@ -11,12 +13,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
+
+
 // Listen for keydown events on the document
 document.addEventListener('keydown', (event) => {
     // Check if 'T' key was pressed
     if (event.key === 't' || event.key === 'T') {
         // Stop recording
         let chunks = prevChunks
+        if (mediaRecorder === null) {
+            startRecording()
+            return
+        }
         if (mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
@@ -24,7 +32,7 @@ document.addEventListener('keydown', (event) => {
             mediaRecorder.start();
         }
         // Convert recorded chunks to a single Blob
-        const audioBlob = new Blob([...prevChunks, ...recordedChunks], { type: 'audio/webm' });
+        const audioBlob = new Blob([...chunks, ...recordedChunks], { type: 'audio/webm' });
         const formData = new FormData();
         formData.append("audio", audioBlob, "audio.webm");
         formData.append("targetLanguage", language)
@@ -33,33 +41,32 @@ document.addEventListener('keydown', (event) => {
             .then(res => res.json())
             .then(data => {
                 transcript = data.translation
-                alert(transcript)
+                if (transcript) {
+                    alert(transcript)
+                }
             })
             .catch(err => {
+                if (interval) {
+                    clearInterval(interval)
+                }
+                startRecording()
                 console.log(err)
             })
     }
 });
 
-
 function startRecording() {
+    console.log("started")
+    clearInterval(interval);
     try {
-        const data = document.querySelector('video')
-        if (!data) {
-            return
-        }
-
-        const audioStream = new MediaStream(data.captureStream().getAudioTracks());
+        const video = document.querySelector("video")
+        const audioStream = new MediaStream(video.captureStream().getAudioTracks());
 
         mediaRecorder = new MediaRecorder(audioStream);
         mediaRecorder.addEventListener('dataavailable', (event) => {
-            // Calculate the start time for the last 5 seconds of audio
-            const startTime = event.timeStamp - 5000;
+            const startTime = event.timeStamp - 3000;
             prevChunks = recordedChunks
-            // Filter out any chunks that occurred before the last 5 seconds
             recordedChunks = recordedChunks.filter(chunk => chunk.timeStamp >= startTime);
-
-            // Push the current chunk to the recordedChunks array
             recordedChunks.push(event.data);
 
         });
@@ -68,21 +75,28 @@ function startRecording() {
             mediaRecorder.start();
         }
 
-        setInterval(() => {
+        interval = setInterval(() => {
             if (mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
             }
-            console.log('chuncked');
+            console.log('chunked');
             if (mediaRecorder.state === 'inactive') {
                 mediaRecorder.start();
             }
         }, 3000);
 
     } catch (error) {
-        setTimeout(() => {
-            startRecording()
-        }, 3000)
+        console.log(`Error starting recording: ${error}`)
+        timeout = setTimeout(() => startRecording(), 2000)
     }
 }
 
-startRecording()
+//These SPAs
+setInterval(() => {
+    if (location.href !== currentPath) {
+        clearInterval(interval)
+        clearTimeout(timeout)
+        startRecording()
+        currentPath = location.href
+    }
+}, 1000)
